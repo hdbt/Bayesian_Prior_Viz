@@ -39,6 +39,9 @@ source("plotting.R")
 source("example_uses.R")
 source("counter_server.R")
 source("counter_ui.R")
+
+
+# js code ---------------
 jscode <- "shinyjs.init = function() {
 
 var signaturePad = new SignaturePad(document.getElementById('signature-pad'), {
@@ -56,43 +59,47 @@ Shiny.onInputChange('shiny_data',data);
 });
 
 cancelButton.addEventListener('click', function (event) {
-  signaturePad.clear();
+        Shiny.onInputChange('shiny_clear','Hallo von clear');
+// Send data to server instead...
+        signaturePad.clear();
+
 });
+
 
 }"
 
 # zooo pre conditions start -----
 
-prismDependencies <- tags$head(
-  tags$script(src = "https://cdnjs.cloudflare.com/ajax/libs/prism/1.8.4/prism.min.js"),
-  tags$link(rel = "stylesheet", type = "text/css",
-            href = "https://cdnjs.cloudflare.com/ajax/libs/prism/1.8.4/themes/prism.min.css")
-)
-prismLanguageDependencies <- function(languages) {
-  lapply(languages, function(x) {
-    tags$head(
-      tags$script(
-        src = paste0("https://cdnjs.cloudflare.com/ajax/libs/prism/1.8.4/components/prism-",
-                     x, ".min.js")
-      )
-    )
-  })
-}
+         # prismDependencies <- tags$head(
+         # tags$script(src = "https://cdnjs.cloudflare.com/ajax/libs/prism/1.8.4/prism.min.js"),
+         # tags$link(rel = "stylesheet", type = "text/css",
+         #          href = "https://cdnjs.cloudflare.com/ajax/libs/prism/1.8.4/themes/prism.min.css")
+         # )
+         # prismLanguageDependencies <- function(languages) {
+         # lapply(languages, function(x) {
+         #  tags$head(
+         #    tags$script(
+         #      src = paste0("https://cdnjs.cloudflare.com/ajax/libs/prism/1.8.4/components/prism-",
+         #                   x, ".min.js")
+         #    )
+         #  )
+         # })
+         # }
+         # 
+         # 
+         # # Define UI for random distribution application
+         # ben_link <- a("Ben Lambert", href="https://ben-lambert.com/bayesian/", target="_blank")
+         # fergus_link <- a("Fergus Cooper", href="https://www.cs.ox.ac.uk/people/fergus.cooper/site/", target="_blank")
+         # 
+         # ga_30_line <- ""
+         # ga_all_line <- ""
 
-
-# Define UI for random distribution application
-ben_link <- a("Ben Lambert", href="https://ben-lambert.com/bayesian/", target="_blank")
-fergus_link <- a("Fergus Cooper", href="https://www.cs.ox.ac.uk/people/fergus.cooper/site/", target="_blank")
-
-ga_30_line <- ""
-ga_all_line <- ""
-
-try({
-  ga_30 <- rjson::fromJSON(file="https://www.cs.ox.ac.uk/people/fergus.cooper/google_analytics_data_30daysAgo.json")
-  ga_all <- rjson::fromJSON(file="https://www.cs.ox.ac.uk/people/fergus.cooper/google_analytics_data_2019-01-08.json")
-  ga_30_line <- h4("Last month: used by ", ga_30['user_count'], " people over ", ga_30['session_count'], "sessions in ", ga_30['country_count'], " countries")
-  ga_all_line <- h4("Since created: used by ", ga_all['user_count'], " people over ", ga_all['session_count'], "sessions in ", ga_all['country_count'], " countries")
-})
+         # try({
+         #   ga_30 <- rjson::fromJSON(file="https://www.cs.ox.ac.uk/people/fergus.cooper/google_analytics_data_30daysAgo.json")
+         #   ga_all <- rjson::fromJSON(file="https://www.cs.ox.ac.uk/people/fergus.cooper/google_analytics_data_2019-01-08.json")
+         #   ga_30_line <- h4("Last month: used by ", ga_30['user_count'], " people over ", ga_30['session_count'], "sessions in ", ga_30['country_count'], " countries")
+         #   ga_all_line <- h4("Since created: used by ", ga_all['user_count'], " people over ", ga_all['session_count'], "sessions in ", ga_all['country_count'], " countries")
+         # })
 
 # zooo pre conditions end -----
 
@@ -102,7 +109,19 @@ try({
 
 #Ui -------
 ui <- fluidPage(
-    
+   # setInputValue -------------
+   tags$script("
+    Shiny.addCustomMessageHandler('rhm_click', function(value) {
+    //Shiny.setInputValue('dist', 'Normakl');
+    Shiny.setInputValue('n', value[0]);
+    Shiny.setInputValue('normal_mu', value[1]);
+    Shiny.setInputValue('normal_sigma', value[2]);
+    Shiny.setInputValue('uniform_a', value[3]);
+    Shiny.setInputValue('uniform_b', value[3]);
+
+    });
+  "),
+   
     includeCSS("custom.css"),
     tags$head(tags$script(src = "signature_pad.js")),
     
@@ -123,16 +142,16 @@ ui <- fluidPage(
     #counterButton(NULL,NULL)
     
     #zoo ui start ----
-    tags$head(includeHTML(("google-analytics.html"))),
-    includeCSS("styles.css"),
-    # Application title
-    headerPanel("The distribution zoo"),
-    tagList(h4("by")),
-    fluidRow(h4(ben_link, " and ", fergus_link), ga_30_line, ga_all_line),
-    prismDependencies,
-    prismLanguageDependencies(c("r", "python", "latex",
-                                "matlab", "mathematica", "c-like",
-                                "c", "cpp", "julia")),
+     #tags$head(includeHTML(("google-analytics.html"))),
+     #includeCSS("styles.css"),
+     # Application title
+     #headerPanel("The distribution zoo"),
+     #tagList(h4("by")),
+     #fluidRow(h4(ben_link, " and ", fergus_link), ga_30_line, ga_all_line),
+     #prismDependencies,
+     #prismLanguageDependencies(c("r", "python", "latex",
+     #                           "matlab", "mathematica", "c-like",
+     #                             "c", "cpp", "julia")),
     
     # Sidebar with controls to select the random distribution type
     # and number of observations to generate. Note the use of the
@@ -284,7 +303,7 @@ ui <- fluidPage(
       )
     )
 )
-    #zoo ui end ----
+    #zoo ui end ----<
     
     
     
@@ -323,8 +342,14 @@ server <- function(input, output, session){
         
         
     })
-
-
+   # observe random dist / parameter --------
+    observeEvent(input$dist, {
+       session$sendCustomMessage("rhm_click", list(100,2,4,8))
+       print(" observed!")
+    })
+    observeEvent(input$shiny_clear, {
+       cat(" observed!")
+    })
     
    observeEvent(input$shiny_data,{
    shiny_data <-  input$shiny_data
@@ -374,39 +399,44 @@ server <- function(input, output, session){
    #shinyServer(function(input, output) {
    
    data <- reactive({
-     
-     dist<-if(input$distType=='Continuous'){
-       switch(input$dist,
-              Normal = dnorm,
-              Uniform = dunif,
-              LogNormal = dlnorm,
-              Exponential = dexp,
-              Gamma=dgamma,
-              t = dst,
-              Beta=dbeta,
-              Cauchy=dcauchy,
-              HalfCauchy=dCustomHalfCauchy,
-              InverseGamma=dinvgamma,
-              InverseChiSquared=dCustomInverseChiSquared,
-              LogitNormal=dlogitnorm,
-              dnorm)
-     } else if (input$distType=='Discrete'){
-       switch(input$dist1,
-              Bernoulli=dbern,
-              BetaBinomial=dCustomBetaBinomial,
-              Binomial=dbinom,
-              DiscreteUniform=dunifdisc,
-              Poisson=dpois,
-              NegativeBinomial=dnbinom,
-              dbern)
-     } else if (input$distType=='Multivariate'){
-       switch(input$dist2,
-              MultivariateNormal=dmvnorm,
-              MultivarateT=dmvt,
-              dmvnorm)
-     }
+      #rewrite to random process ----
+      
+      print(structure(input$n)) 
+      
+     dist<-#if(input$distType=='Continuous'){
+        dnorm
+       # switch(input$dist,
+       #        Normal = dnorm,
+       #        Uniform = dunif,
+       #        LogNormal = dlnorm,
+       #        Exponential = dexp,
+       #        Gamma=dgamma,
+       #        t = dst,
+       #        Beta=dbeta,
+       #        Cauchy=dcauchy,
+       #        HalfCauchy=dCustomHalfCauchy,
+       #        InverseGamma=dinvgamma,
+       #        InverseChiSquared=dCustomInverseChiSquared,
+       #        LogitNormal=dlogitnorm,
+       #        dnorm)
+     #}
+     #
+     #   else if (input$distType=='Discrete'){
+     #   switch(input$dist1,
+     #          Bernoulli=dbern,
+     #          BetaBinomial=dCustomBetaBinomial,
+     #          Binomial=dbinom,
+     #          DiscreteUniform=dunifdisc,
+     #          Poisson=dpois,
+     #          NegativeBinomial=dnbinom,
+     #          dbern)
+     # } else if (input$distType=='Multivariate'){
+     #   switch(input$dist2,
+     #          MultivariateNormal=dmvnorm,
+     #          MultivarateT=dmvt,
+     #          dmvnorm)
+     # }
    })
-   
    dataCDF <- reactive({
      dist <- if (input$distType=='Continuous') {
        switch(input$dist,
@@ -613,39 +643,41 @@ server <- function(input, output, session){
    })
    
    output$mytabs = renderUI({
-     if(input$distType!='Multivariate'){
-       myTabs = tabsetPanel(type = "tabs", 
-                            tabPanel("Plot of PDF", plotOutput("plot"),
-                                     uiOutput("runningQuantities")), 
-                            tabPanel("Plot of CDF", plotOutput("plotCDF"),
-                                     uiOutput("runningQuantities1")),
-                            tabPanel("Formulae", 
-                                     uiOutput("formulae")),
-                            tabPanel("LaTeX", 
-                                     uiOutput("latex")),
-                            tabPanel("Code", 
-                                     uiOutput("language"),
-                                     uiOutput("property"),
-                                     uiOutput("code")),
-                            tabPanel("Practical tips",
-                                     uiOutput("example_uses"))
-       )
-     }else{
-       myTabs = tabsetPanel(type = "tabs", 
-                            tabPanel("Plot of PDF", plotOutput("plot"),
-                                     uiOutput("runningQuantities")),
-                            tabPanel("Formulae", 
-                                     uiOutput("formulae")),
-                            tabPanel("LaTeX", 
-                                     uiOutput("latex")),
-                            tabPanel("Code", 
-                                     uiOutput("language"),
-                                     uiOutput("property"),
-                                     uiOutput("code")),
-                            tabPanel("Practical tips",
-                                     uiOutput("example_uses"))
-       )
-     }
+     # if(input$distType!='Multivariate'){
+     #   myTabs = tabsetPanel(type = "tabs", 
+     #                        tabPanel("Plot of PDF", plotOutput("plot"),
+     #                                 uiOutput("runningQuantities")), 
+     #                        tabPanel("Plot of CDF", plotOutput("plotCDF"),
+     #                                 uiOutput("runningQuantities1")),
+     #                        tabPanel("Formulae", 
+     #                                 uiOutput("formulae")),
+     #                        tabPanel("LaTeX", 
+     #                                 uiOutput("latex")),
+     #                        tabPanel("Code", 
+     #                                 uiOutput("language"),
+     #                                 uiOutput("property"),
+     #                                 uiOutput("code")),
+     #                        tabPanel("Practical tips",
+     #                                 uiOutput("example_uses"))
+     #   )
+     # }else{
+       # myTabs = tabsetPanel(type = "tabs", 
+       #                      tabPanel("Plot of PDF", 
+                                     plotOutput("plot")
+       #,
+       #                               uiOutput("runningQuantities")),
+       #                      tabPanel("Formulae", 
+       #                               uiOutput("formulae")),
+       #                      tabPanel("LaTeX", 
+       #                               uiOutput("latex")),
+       #                      tabPanel("Code", 
+       #                               uiOutput("language"),
+       #                               uiOutput("property"),
+       #                               uiOutput("code")),
+       #                      tabPanel("Practical tips",
+       #                               uiOutput("example_uses"))
+       # )
+     #}
    }) # zoo end -----
    
    
