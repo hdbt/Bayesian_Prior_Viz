@@ -40,7 +40,29 @@ source("example_uses.R")
 source("counter_server.R")
 source("counter_ui.R")
 
+sample.vec <- function(x, ...) x[sample(length(x), ...)]
 
+#sample the dist. ----
+#dist_list <- list(dnorm, dunif, dlnorm, dexp,dgamma, dst,dbeta,dcauchy,dCustomHalfCauchy,dinvgamma,dCustomInverseChiSquared,dlogitnorm)
+#dist<-      dist_list[[sample(length(dist_list),1,T)]]
+
+dist_vec <- c("Normal", "Uniform", "Lognormal", "Exponential", "Gamma", "t", "Beta", "Cauchy", "HalfCauchy", "InverseGamma", "InverseChiSquared", "LogitNormal", "Normal")
+dist_vec_sampled <- dist_vec[[sample(length(dist_vec),1,T)]]
+dist_vec_sampled
+dist <- switch(dist_vec_sampled, Normal = dnorm,
+                 Uniform = dunif,
+                 LogNormal = dlnorm,
+                 Exponential = dexp,
+                 Gamma=dgamma,
+                 t = dst,
+                 Beta=dbeta,
+                 Cauchy=dcauchy,
+                 HalfCauchy=dCustomHalfCauchy,
+                 InverseGamma=dinvgamma,
+                 InverseChiSquared=dCustomInverseChiSquared,
+                 LogitNormal=dlogitnorm,
+                 dnorm) 
+dist
 # js code ---------------
 jscode <- "shinyjs.init = function() {
 
@@ -117,7 +139,26 @@ ui <- fluidPage(
     Shiny.setInputValue('normal_mu', value[1]);
     Shiny.setInputValue('normal_sigma', value[2]);
     Shiny.setInputValue('uniform_a', value[3]);
-    Shiny.setInputValue('uniform_b', value[3]);
+    Shiny.setInputValue('uniform_b', value[4]);
+    Shiny.setInputValue('lognormal_mu', value[5]);
+    Shiny.setInputValue('lognormal_sigma', value[6]);
+    Shiny.setInputValue('exponential_rate', value[7]);
+    Shiny.setInputValue('gamma_shape', value[8]);
+    Shiny.setInputValue('gamma_rate', value[9]);
+    Shiny.setInputValue('t_mu', value[10]);
+    Shiny.setInputValue('t_sigma', value[11]);
+    Shiny.setInputValue('t_nu', value[12]);
+    Shiny.setInputValue('beta_a', value[13]);
+    Shiny.setInputValue('beta_b', value[14]);
+    Shiny.setInputValue('cauchy_location', value[15]);
+    Shiny.setInputValue('cauchy_scale', value[16]);
+    Shiny.setInputValue('halfcauchy_location', value[17]);
+    Shiny.setInputValue('halfcauchy_scale', value[18]);
+    Shiny.setInputValue('inversegamma_shape', value[19]);
+    Shiny.setInputValue('inversegamma_scale', value[20]);
+    Shiny.setInputValue('inversechisquared_df', value[21]);
+    Shiny.setInputValue('logitnormal_mu', value[22]);
+    Shiny.setInputValue('logitnormal_sigma', value[23]);
 
     });
   "),
@@ -177,7 +218,9 @@ ui <- fluidPage(
                                        "Normal" = "Normal",
                                        "Student-t" = "t",
                                        "Uniform" = "Uniform"),
-                                     selected="Normal")),
+                                     selected=  dist_vec_sampled
+                                     
+                                     )),
         conditionalPanel("input.distType=='Discrete'",
                          selectInput("dist1", "Distribution type:",
                                      c("Bernoulli" = "Bernoulli",
@@ -344,9 +387,11 @@ server <- function(input, output, session){
     })
    # observe random dist / parameter --------
     observeEvent(input$dist, {
-       session$sendCustomMessage("rhm_click", list(100,2,4,8))
+       cat(input$dist)
+       params <- map(list(1000,1,2,0,1,0,1,0.5,1,0.5,0,1,3,0.5,0.5,0,1,0,1,2,1,3,1,1), sample.vec,1,T)
+       session$sendCustomMessage("rhm_click", params)
        print(" observed!")
-    })
+    },ignoreInit = T)
     observeEvent(input$shiny_clear, {
        cat(" observed!")
     })
@@ -402,24 +447,26 @@ server <- function(input, output, session){
       #rewrite to random process ----
       
       print(structure(input$n)) 
-      
-     dist<-#if(input$distType=='Continuous'){
-        dnorm
-       # switch(input$dist,
-       #        Normal = dnorm,
-       #        Uniform = dunif,
-       #        LogNormal = dlnorm,
-       #        Exponential = dexp,
-       #        Gamma=dgamma,
-       #        t = dst,
-       #        Beta=dbeta,
-       #        Cauchy=dcauchy,
-       #        HalfCauchy=dCustomHalfCauchy,
-       #        InverseGamma=dinvgamma,
-       #        InverseChiSquared=dCustomInverseChiSquared,
-       #        LogitNormal=dlogitnorm,
-       #        dnorm)
-     #}
+      dist_list <- list(dnorm, dunif, dlnorm, dexp,dgamma, dst,dbeta,dcauchy,dCustomHalfCauchy,dinvgamma,dCustomInverseChiSquared,dlogitnorm)
+      dist<-#if(input$distType=='Continuous')
+         {
+         
+        dist_list[[sample(length(dist_list),1,T)]]
+     # switch(input$dist,
+     #        Normal = dnorm,
+     #        Uniform = dunif,
+     #        LogNormal = dlnorm,
+     #        Exponential = dexp,
+     #        Gamma=dgamma,
+     #        t = dst,
+     #        Beta=dbeta,
+     #        Cauchy=dcauchy,
+     #        HalfCauchy=dCustomHalfCauchy,
+     #        InverseGamma=dinvgamma,
+     #        InverseChiSquared=dCustomInverseChiSquared,
+     #        LogitNormal=dlogitnorm,
+     #        dnorm)
+     # }
      #
      #   else if (input$distType=='Discrete'){
      #   switch(input$dist1,
@@ -435,7 +482,12 @@ server <- function(input, output, session){
      #          MultivariateNormal=dmvnorm,
      #          MultivarateT=dmvt,
      #          dmvnorm)
-     # }
+     # 
+            dist
+            }
+      
+      #print(input$dist)
+      
    })
    dataCDF <- reactive({
      dist <- if (input$distType=='Continuous') {
