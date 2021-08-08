@@ -1,3 +1,5 @@
+.libPaths(c("/home/hdbt/R/x86_64-pc-linux-gnu-library/4.1"))
+setwd("/srv/shiny-server/Bayesian_Prior_Viz")
 library(shiny)
 library(dplyr)
 library(ggplot2)
@@ -379,10 +381,12 @@ server <- function(input, output, session){
    # observe random dist / parameter --------
     observeEvent(input$distType, {  #changed input$dist selection sooo now it is ignoring my params
        cat(input$dist)
-       params <- map(list(1000,1,2,0,1,0,1,0.5,1,0.5,0,1,3,0.5,0.5,0,1,0,1,2,1,3,1,1), sample.vec,1,T)
+       params <- map(list(20,1,2,0,1,0,1,0.5,1,0.5,0,1,3,0.5,0.5,0,1,0,1,2,1,3,1,1), sample.vec,1,T)
        session$sendCustomMessage("rhm_click", params)
        print(" observed!")
-    },ignoreInit = T)
+    },ignoreInit = T) #for demonstration purposes set to ignore Init. Because of desyncronisation.
+    
+    
     observeEvent(input$shiny_clear, {
        cat(" observed!")
       print(fCalculateMean())
