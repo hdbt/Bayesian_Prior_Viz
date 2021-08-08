@@ -49,20 +49,7 @@ sample.vec <- function(x, ...) x[sample(length(x), ...)]
 dist_vec <- c("Normal", "Uniform", "Lognormal", "Exponential", "Gamma", "t", "Beta", "Cauchy", "HalfCauchy", "InverseGamma", "InverseChiSquared", "LogitNormal", "Normal")
 dist_vec_sampled <- dist_vec[[sample(length(dist_vec),1,T)]]
 dist_vec_sampled
-dist <- switch(dist_vec_sampled, Normal = dnorm,
-                 Uniform = dunif,
-                 LogNormal = dlnorm,
-                 Exponential = dexp,
-                 Gamma=dgamma,
-                 t = dst,
-                 Beta=dbeta,
-                 Cauchy=dcauchy,
-                 HalfCauchy=dCustomHalfCauchy,
-                 InverseGamma=dinvgamma,
-                 InverseChiSquared=dCustomInverseChiSquared,
-                 LogitNormal=dlogitnorm,
-                 dnorm) 
-dist
+
 # js code ---------------
 jscode <- "shinyjs.init = function() {
 
@@ -75,6 +62,7 @@ var cancelButton = document.getElementById('clear');
 
 saveButton.addEventListener('click', function (event) {
   var data = signaturePad.toDataURL('image/png');
+  signaturePad.clear();
 Shiny.onInputChange('shiny_data',data);
 // Send data to server instead...
   //window.open(data);
@@ -198,6 +186,8 @@ ui <- fluidPage(
     # and number of observations to generate. Note the use of the
     # br() element to introduce extra vertical spacing
     sidebarLayout(
+     div(id = "sidebar",
+        
       sidebarPanel(
         selectInput("distType", "Category of distribution",
                     c("Continuous Univariate"="Continuous",
@@ -338,6 +328,7 @@ ui <- fluidPage(
                          sliderInput("lkj_eta", "Degrees of freedom", min=0, max=40, value=1,step=0.2),
                          sliderInput("lkj_samplesize", "Sample size", min=1000, max=20000, value=2000)),
         br()
+     )
       ),
       # Show a tabset that includes a plot, summary, and table view
       # of the generated distribution
@@ -386,7 +377,7 @@ server <- function(input, output, session){
         
     })
    # observe random dist / parameter --------
-    observeEvent(input$dist, {
+    observeEvent(input$distType, {  #changed input$dist selection sooo now it is ignoring my params
        cat(input$dist)
        params <- map(list(1000,1,2,0,1,0,1,0.5,1,0.5,0,1,3,0.5,0.5,0,1,0,1,2,1,3,1,1), sample.vec,1,T)
        session$sendCustomMessage("rhm_click", params)
@@ -394,22 +385,43 @@ server <- function(input, output, session){
     },ignoreInit = T)
     observeEvent(input$shiny_clear, {
        cat(" observed!")
+      print(fCalculateMean())
+       
     })
     
    observeEvent(input$shiny_data,{
-   shiny_data <-  input$shiny_data
-   print(shiny_data)
-   plot_src <- gsub("^data.*base64,", "",shiny_data)
+     dist_vec_sampled <- dist_vec[[sample(length(dist_vec),1,T)]]
+     dist_vec_sampled
+     
+    updateSelectInput(inputId = "dist",selected = dist_vec_sampled)
+    shiny_data <-  input$shiny_data
+    print(shiny_data)
+    plot_src <- gsub("^data.*base64,", "",shiny_data)
     # decode the image code into the image
     plot_image <- image_read(base64enc::base64decode(plot_src))
     # save the image
-    image_write(plot_image, paste0("image_data",as.character(as.numeric(format(Sys.time(), "%OS30")) * 1000 + sample(10000:100000,1)),"_",input$dist ,".png") )
-     }
-     )
+    image_write(plot_image, paste0("image_data","_",dist_vec_sampled,"_",fCalculateMean(),"_",as.character(as.numeric(format(Sys.time(), "%OS30")) * 1000 + sample(10000:100000,1)),"_",input$dist ,".png") )
+     
+    }
+    )
     #modul ----
      #counterServer(NULL)
      #zoo start -----
-   
+   distq <- reactive({
+     dist <- switch(dist_vec_sampled, Normal = dnorm,
+                    Uniform = dunif,
+                    LogNormal = dlnorm,
+                    Exponential = dexp,
+                    Gamma=dgamma,
+                    t = dst,
+                    Beta=dbeta,
+                    Cauchy=dcauchy,
+                    HalfCauchy=dCustomHalfCauchy,
+                    InverseGamma=dinvgamma,
+                    InverseChiSquared=dCustomInverseChiSquared,
+                    LogitNormal=dlogitnorm,
+                    dnorm) 
+   })
    library(shiny)
    library(LaplacesDemon)
    library(ggplot2)
@@ -483,7 +495,22 @@ server <- function(input, output, session){
      #          MultivarateT=dmvt,
      #          dmvnorm)
      # 
-            dist
+            
+           dist
+           
+           dist <- switch(input$dist, Normal = dnorm,
+                          Uniform = dunif,
+                          LogNormal = dlnorm,
+                          Exponential = dexp,
+                          Gamma=dgamma,
+                          t = dst,
+                          Beta=dbeta,
+                          Cauchy=dcauchy,
+                          HalfCauchy=dCustomHalfCauchy,
+                          InverseGamma=dinvgamma,
+                          InverseChiSquared=dCustomInverseChiSquared,
+                          LogitNormal=dlogitnorm,
+                          dnorm) 
             }
       
       #print(input$dist)
@@ -732,6 +759,6 @@ server <- function(input, output, session){
      #}
    }) # zoo end -----
    
-   
+   #hide(id = "sidebar")
     }
 shinyApp(ui = ui, server = server)
