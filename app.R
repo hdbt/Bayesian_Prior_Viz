@@ -44,7 +44,7 @@ source("counter_ui.R")
 
 sample.vec <- function(x, ...) x[sample(length(x), ...)]
 
-#sample the dist. ----
+# > sample the dist. ----
 #dist_list <- list(dnorm, dunif, dlnorm, dexp,dgamma, dst,dbeta,dcauchy,dCustomHalfCauchy,dinvgamma,dCustomInverseChiSquared,dlogitnorm)
 #dist<-      dist_list[[sample(length(dist_list),1,T)]]
 
@@ -56,6 +56,11 @@ dist_vec_sampled
 jscode <- "shinyjs.init = function() {
 
 var signaturePad = new SignaturePad(document.getElementById('signature-pad'), {
+  minWidth: 2,
+  maxWidth: 2,
+  throttle: 0,
+  //minDistance: 100,
+  velocityFilterWeight: .2,
   backgroundColor: 'rgba(255, 255, 255, 0)',
   penColor: 'rgb(0, 0, 0)'
 });
@@ -76,8 +81,30 @@ cancelButton.addEventListener('click', function (event) {
         signaturePad.clear();
 
 });
+// just for fun custom slider to explore some options
+var slider = document.getElementById('myRange');
+var output = document.getElementById('demo');
+output.innerHTML = signaturePad.maxWidth; // Display the default slider value
 
+// Update the current slider value (each time you drag the slider handle)
+slider.oninput = function() {
+  var signaturePad = new SignaturePad(document.getElementById('signature-pad'));
+  signaturePad.minWidth = Math.round((this.value/10));
+  signaturePad.maxWidth = Math.round((this.value/10));
+  output.innerHTML = signaturePad.maxWidth;
+  
+} 
+var slider = document.getElementById('myRange1');
+var output = document.getElementById('demo');
+output.innerHTML = signaturePad.maxWidth; // Display the default slider value
 
+// Update the current slider value (each time you drag the slider handle)
+slider.oninput = function() {
+  output.innerHTML = this.value;
+  var signaturePad = new SignaturePad(document.getElementById('signature-pad'));
+  signaturePad.throttle = this.value;
+  
+} 
 }"
 
 # zooo pre conditions start -----
@@ -121,7 +148,7 @@ cancelButton.addEventListener('click', function (event) {
 
 #Ui -------
 ui <- fluidPage(
-   # setInputValue -------------
+   # > set InputValue -------------
    tags$script("
     Shiny.addCustomMessageHandler('rhm_click', function(value) {
     //Shiny.setInputValue('dist', 'Normakl');
@@ -154,19 +181,25 @@ ui <- fluidPage(
   "),
    
     includeCSS("custom.css"),
-    tags$head(tags$script(src = "signature_pad.js")),
-    
+    tags$head(tags$script(src = "signature_pad.umd.js")),
+    tags$style(""),
     shinyjs::useShinyjs(),
     shinyjs::extendShinyjs(text = jscode,functions = "shinyjs.init"),
     
     h1("Draw on plot"),
+   HTML("<div style= 'width: 10%;'>         
+  <input type='range' min='0.1' max='100' value='0.5' class='slider' id='myRange'>
+  <input type='range' min='0.1' max='100' value='0.5' class='slider' id='myRange1'>
+  <input type='range' min='0.1' max='100' value='0.5' class='slider' id='myRange2'>
+  <input type='range' min='0.1' max='100' value='0.5' class='slider' id='myRange3'></div>"),
     div(class="wrapper",
+        
         plotOutput("plot1"),
         HTML("<canvas id='signature-pad' class='signature-pad' width=600 height=400></canvas>"),
         HTML("<div>
            <button id='save'>Save</button>
            <button id='clear'>Clear</button>
-           </div>")
+<span>Value: <span id='demo'></span></div>")
     ),
     br(),br(),
     #modul----
@@ -335,7 +368,7 @@ ui <- fluidPage(
       # Show a tabset that includes a plot, summary, and table view
       # of the generated distribution
       mainPanel(
-        uiOutput('mytabs')
+        uiOutput('mytabs' )
       )
     )
 )
@@ -378,13 +411,13 @@ server <- function(input, output, session){
         
         
     })
-   # observe random dist / parameter --------
+   # > observe set random dist / parameter --------
     observeEvent(input$distType, {  #changed input$dist selection sooo now it is ignoring my params
        cat(input$dist)
-       params <- map(list(20,1,2,0,1,0,1,0.5,1,0.5,0,1,3,0.5,0.5,0,1,0,1,2,1,3,1,1), sample.vec,1,T)
+       params <- map(list(10, 1, 2, 0, 1, 0, 1, 0.5 ,1 ,0.5 ,0 ,1 ,3 ,0.5 ,0.5 ,0 ,1 ,0 ,1 ,2 ,1 ,3 ,1 ,1), sample.vec,1,T)
        session$sendCustomMessage("rhm_click", params)
        print(" observed!")
-    },ignoreInit = T) #for demonstration purposes set to ignore Init. Because of desyncronisation.
+    },ignoreInit = F) #for demonstration purposes set to ignore Init. Because of desyncronisation.
     
     
     observeEvent(input$shiny_clear, {
@@ -746,7 +779,7 @@ server <- function(input, output, session){
      # }else{
        # myTabs = tabsetPanel(type = "tabs", 
        #                      tabPanel("Plot of PDF", 
-                                     plotOutput("plot")
+                                     plotOutput("plot", width = "45%")
        #,
        #                               uiOutput("runningQuantities")),
        #                      tabPanel("Formulae", 
