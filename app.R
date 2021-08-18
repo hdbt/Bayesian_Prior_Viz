@@ -48,7 +48,7 @@ sample.vec <- function(x, ...) x[sample(length(x), ...)]
 #dist_list <- list(dnorm, dunif, dlnorm, dexp,dgamma, dst,dbeta,dcauchy,dCustomHalfCauchy,dinvgamma,dCustomInverseChiSquared,dlogitnorm)
 #dist<-      dist_list[[sample(length(dist_list),1,T)]]
 
-dist_vec <- c("Normal", "Uniform", "Lognormal", "Exponential", "Gamma", "t", "Beta", "Cauchy", "HalfCauchy", "InverseGamma", "InverseChiSquared", "LogitNormal", "Normal")
+dist_vec <- c("Normal", "Uniform", "LogNormal", "Exponential", "Gamma", "t", "Beta", "Cauchy", "HalfCauchy", "InverseGamma", "InverseChiSquared", "LogitNormal", "Normal")
 dist_vec_sampled <- dist_vec[[sample(length(dist_vec),1,T)]]
 dist_vec_sampled
 
@@ -56,12 +56,12 @@ dist_vec_sampled
 jscode <- "shinyjs.init = function() {
 
 var signaturePad = new SignaturePad(document.getElementById('signature-pad'), {
+  backgroundColor: '#ffffff',
   minWidth: 2,
   maxWidth: 2,
-  throttle: 0,
-  //minDistance: 100,
-  velocityFilterWeight: .2,
-  backgroundColor: 'rgba(255, 255, 255, 0)',
+  //throttle: 0,
+  //minDistance: 10,
+  //velocityFilterWeight: .2,
   penColor: 'rgb(0, 0, 0)'
 });
 var saveButton = document.getElementById('save');
@@ -81,30 +81,31 @@ cancelButton.addEventListener('click', function (event) {
         signaturePad.clear();
 
 });
-// just for fun custom slider to explore some options
-var slider = document.getElementById('myRange');
-var output = document.getElementById('demo');
-output.innerHTML = signaturePad.maxWidth; // Display the default slider value
-
-// Update the current slider value (each time you drag the slider handle)
-slider.oninput = function() {
-  var signaturePad = new SignaturePad(document.getElementById('signature-pad'));
-  signaturePad.minWidth = Math.round((this.value/10));
-  signaturePad.maxWidth = Math.round((this.value/10));
-  output.innerHTML = signaturePad.maxWidth;
-  
-} 
-var slider = document.getElementById('myRange1');
-var output = document.getElementById('demo');
-output.innerHTML = signaturePad.maxWidth; // Display the default slider value
-
-// Update the current slider value (each time you drag the slider handle)
-slider.oninput = function() {
-  output.innerHTML = this.value;
-  var signaturePad = new SignaturePad(document.getElementById('signature-pad'));
-  signaturePad.throttle = this.value;
-  
-} 
+//// just for fun custom slider to explore some options
+////var slider = document.getElementById('myRange');
+//var output = document.getElementById('demo');
+//output.innerHTML = signaturePad.maxWidth; // Display the default slider value
+//
+//// Update the current slider value (each time you drag the slider handle)
+////slider.oninput = function() {
+////  var signaturePad = new SignaturePad(document.getElementById('signature-pad'));
+////  signaturePad.minWidth = Math.round((this.value/10));
+////  signaturePad.maxWidth = Math.round((this.value/10));
+//  output.innerHTML = signaturePad.maxWidth;
+//  
+//} 
+//var slider = document.getElementById('myRange1');
+//var output = document.getElementById('demo');
+//output.innerHTML = signaturePad.maxWidth; // Display the default slider value
+//
+//// Update the current slider value (each time you drag the slider handle)
+//slider.oninput = function() {
+//  output.innerHTML = this.value;
+//  var signaturePad = new SignaturePad(document.getElementById('signature-pad'));
+//  signaturePad.throttle = this.value;
+//  
+//}
+//
 }"
 
 # zooo pre conditions start -----
@@ -179,7 +180,11 @@ ui <- fluidPage(
 
     });
   "),
-   
+   #counter
+    tags$head(tags$script("let counter = 0
+                          function count() {
+                          counter ++;
+                          document.getElementById('demo').innerHTML= counter;}")),
     includeCSS("custom.css"),
     tags$head(tags$script(src = "signature_pad.umd.js")),
     tags$style(""),
@@ -187,19 +192,19 @@ ui <- fluidPage(
     shinyjs::extendShinyjs(text = jscode,functions = "shinyjs.init"),
     
     h1("Draw on plot"),
-   HTML("<div style= 'width: 10%;'>         
-  <input type='range' min='0.1' max='100' value='0.5' class='slider' id='myRange'>
-  <input type='range' min='0.1' max='100' value='0.5' class='slider' id='myRange1'>
-  <input type='range' min='0.1' max='100' value='0.5' class='slider' id='myRange2'>
-  <input type='range' min='0.1' max='100' value='0.5' class='slider' id='myRange3'></div>"),
+  #  HTML("<div style= 'width: 10%;'>         
+  # <input type='range' min='0.1' max='100' value='0.5' class='slider' id='myRange'>
+  # <input type='range' min='0.1' max='100' value='0.5' class='slider' id='myRange1'>
+  # <input type='range' min='0.1' max='100' value='0.5' class='slider' id='myRange2'>
+  # <input type='range' min='0.1' max='100' value='0.5' class='slider' id='myRange3'></div>"),
     div(class="wrapper",
         
-        plotOutput("plot1"),
+        plotOutput("plot"),
         HTML("<canvas id='signature-pad' class='signature-pad' width=600 height=400></canvas>"),
         HTML("<div>
-           <button id='save'>Save</button>
+           <button id='save' onClick= 'count()'>Save</button>
            <button id='clear'>Clear</button>
-<span>Value: <span id='demo'></span></div>")
+<span>Counter: <span id='demo'>0</span></div>")
     ),
     br(),br(),
     #modul----
@@ -222,7 +227,7 @@ ui <- fluidPage(
     # br() element to introduce extra vertical spacing
     sidebarLayout(
      div(id = "sidebar",
-        
+## >set input$dist -----------------        
       sidebarPanel(
         selectInput("distType", "Category of distribution",
                     c("Continuous Univariate"="Continuous",
@@ -243,7 +248,7 @@ ui <- fluidPage(
                                        "Normal" = "Normal",
                                        "Student-t" = "t",
                                        "Uniform" = "Uniform"),
-                                     selected=  dist_vec_sampled
+                                     selected= "LogNormal"  #dist_vec_sampled
                                      
                                      )),
         conditionalPanel("input.distType=='Discrete'",
@@ -300,7 +305,7 @@ ui <- fluidPage(
                          sliderInput("inversechisquared_df", "degrees of freedom", min=0.5, max=10, value=3)),
         conditionalPanel(condition="input.distType=='Continuous'&&input.dist=='LogitNormal'",
                          sliderInput("logitnormal_mu", "mu parameter", min=-10, max=10, value=1, step=0.2),
-                         sliderInput("logitnormal_sigma", "sigma parameter", min=0.5, max=10, value=1, step=0.2)),   
+                         sliderInput("logitnormal_sigma", "sigma parameter", min=0.5, max=10, value=1, step=0.1)),   
         conditionalPanel(condition="input.distType=='Discrete'&&input.dist1=='Bernoulli'",
                          sliderInput("bernoulli_prob", "probability", min=0, max=1, value=0.5)),
         conditionalPanel(condition="input.distType=='Discrete'&&input.dist1=='BetaBinomial'",
@@ -430,15 +435,15 @@ server <- function(input, output, session){
      dist_vec_sampled <- dist_vec[[sample(length(dist_vec),1,T)]]
      dist_vec_sampled
      
-    updateSelectInput(inputId = "dist",selected = dist_vec_sampled)
     shiny_data <-  input$shiny_data
     print(shiny_data)
     plot_src <- gsub("^data.*base64,", "",shiny_data)
     # decode the image code into the image
     plot_image <- image_read(base64enc::base64decode(plot_src))
     # save the image
-    image_write(plot_image, paste0("image_data","_",dist_vec_sampled,"_",fCalculateMean(),"_",as.character(as.numeric(format(Sys.time(), "%OS30")) * 1000 + sample(10000:100000,1)),"_",input$dist ,".png") )
+    image_write(plot_image, paste0("image_data_",input$dist,"_",fExtraFunctionInputs(),"_","end","_",dist_vec_sampled,"_","_",as.character(as.numeric(format(Sys.time(), "%OS30")) * 1000 + sample(10000:100000,1)),"_",input$dist ,".png") )
      
+    #updateSelectInput(inputId = "dist",selected = dist_vec_sampled)
     }
     )
     #modul ----
@@ -779,7 +784,7 @@ server <- function(input, output, session){
      # }else{
        # myTabs = tabsetPanel(type = "tabs", 
        #                      tabPanel("Plot of PDF", 
-                                     plotOutput("plot", width = "45%")
+                                     plotOutput("plot", width = "49%")
        #,
        #                               uiOutput("runningQuantities")),
        #                      tabPanel("Formulae", 
