@@ -56,7 +56,7 @@ dist_vec_sampled
 jscode <- "shinyjs.init = function() {
 
 var signaturePad = new SignaturePad(document.getElementById('signature-pad'), {
-  backgroundColor: '#ffffff',
+  //backgroundColor: 'rgba(255, 0, 0, 0)',
   minWidth: 2,
   maxWidth: 2,
   //throttle: 0,
@@ -441,7 +441,7 @@ server <- function(input, output, session){
     # decode the image code into the image
     plot_image <- image_read(base64enc::base64decode(plot_src))
     # save the image
-    image_write(plot_image, paste0("image_data_",input$dist,"_",fExtraFunctionInputs(),"_","end","_",dist_vec_sampled,"_","_",as.character(as.numeric(format(Sys.time(), "%OS30")) * 1000 + sample(10000:100000,1)),"_",input$dist ,".png") )
+    image_write(flatten = TRUE, plot_image, paste0("image_data_",input$dist,"_",fExtraFunctionInputs(),"_","end","_",dist_vec_sampled,"_","_",as.character(as.numeric(format(Sys.time(), "%OS30")) * 1000 + sample(10000:100000,1)),"_",input$dist ,".png") )
      
     #updateSelectInput(inputId = "dist",selected = dist_vec_sampled)
     }
