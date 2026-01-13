@@ -171,7 +171,7 @@ The application includes custom implementations for distributions not available 
 ### Image Classification
 
 The classifier uses:
-- Neural network architecture with ImageBlock and ClassificationHead components
+- Neural network architecture with three main components: ImageInput, ImageBlock, and ClassificationHead
 - Images stored as PNG files with naming convention: `image_data_{dist}_{params}_end_{target}_{id}_{dist}.png`
 - Training organized by distribution type for supervised learning
 - Model architecture graph stored in JSON format (ImageInput → ImageBlock → ClassificationHead)
