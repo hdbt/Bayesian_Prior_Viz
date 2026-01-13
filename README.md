@@ -35,7 +35,7 @@ The core concept: **Drawing → Parameter Estimation** — transform your visual
 - Discrete-Uniform
 
 **Multivariate Distributions:**
-- Multivariate Normal, Multivariate Student-t
+- Multivariate Normal, Multivariate t
 - Dirichlet, Multinomial
 - Wishart, Inverse-Wishart
 - LKJ Correlation
@@ -171,10 +171,10 @@ The application includes custom implementations for distributions not available 
 ### Image Classification
 
 The classifier uses:
-- AutoKeras neural network architecture
+- Neural network architecture with ImageBlock and ClassificationHead components
 - Images stored as PNG files with naming convention: `image_data_{dist}_{params}_end_{target}_{id}_{dist}.png`
 - Training organized by distribution type for supervised learning
-- Graph structure for model architecture stored in JSON format
+- Model architecture graph stored in JSON format (ImageInput → ImageBlock → ClassificationHead)
 
 ### Code Generation
 
