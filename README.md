@@ -171,7 +171,7 @@ The application includes custom implementations for distributions not available 
 ### Image Classification
 
 The classifier uses:
-- Neural network architecture defining the data flow through three components: ImageInput (receives image data) → ImageBlock (feature extraction) → ClassificationHead (distribution classification)
+- Neural Network architecture defining the data flow through three components: ImageInput (receives image data) → ImageBlock (feature extraction) → ClassificationHead (distribution classification)
 - Images stored as PNG files with two naming patterns:
   - Training data: `{DistributionName}_{id}.png` (organized in folders by distribution type)
   - Generated samples: `image_data_{dist}_{params}_end_{target}_{id}_{dist}.png` (where the first `{dist}` is the current distribution shown, and the second is the actual target class)
